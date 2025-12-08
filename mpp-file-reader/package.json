@@ -1,0 +1,35 @@
+{
+  "name": "mpp-file-reader",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "buffer": "^6.0.3",
+    "csv-parser": "^3.2.0",
+    "date-fns": "^4.1.0",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.555.0",
+    "mammoth": "^1.11.0",
+    "next": "^14.0.4",  
+    "react": "^18.2.0", 
+    "react-dom": "^18.2.0", 
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^3.5.1",
+    "xlsx": "^0.18.5",
+    "xml-js": "^1.6.11",
+    "xml2js": "^0.6.2",
+    "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17"
+  }
+}
