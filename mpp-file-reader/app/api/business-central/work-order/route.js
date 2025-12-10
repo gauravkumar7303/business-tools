@@ -20,7 +20,7 @@ export async function GET(request) {
     
     console.log('✅ Token received successfully');
     
-    // 2. Build URL for Work Orders
+    // 2. Build URL - DIRECT WorkOrder API endpoint use करें (Page 50172)
     const baseUrl = "https://api.businesscentral.dynamics.com/v2.0/37e65e1f-9d37-4f4f-9358-845548ef5202/SANDBOX-VALIDATIONS-26-11-2024/ODataV4";
     const companyName = 'AL%20SOFTWEB%20PVT%20LTD%20UAT';
     
@@ -30,100 +30,68 @@ export async function GET(request) {
       'Content-Type': 'application/json'
     };
     
-    console.log('🔍 Fetching Work Orders...');
+    console.log('🔍 Fetching Work Orders from WorkOrder API...');
     
     let workOrderData = null;
     let usedEndpoint = '';
     
-    // OPTION 1: Try WorkOrder endpoint with Service PR filter
-    const workOrderUrl = `${baseUrl}/Company('${companyName}')/purchaseDocuments?$filter=documentType eq 'Order' and poType eq 'Service PR'`;
-    console.log(`Trying: ${workOrderUrl}`);
+    // DIRECT API: Page 50172 WorkOrder API use करें
+    const workOrderApiUrl = `${baseUrl}/Company('${companyName}')/WorkOrder`;
+    console.log(`📡 Calling: ${workOrderApiUrl}`);
     
     try {
-      const response = await fetch(workOrderUrl, { headers });
-      console.log(`Work Order API status: ${response.status}`);
+      const response = await fetch(workOrderApiUrl, { headers });
+      console.log(`WorkOrder API status: ${response.status}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Found ${data.value?.length || 0} Work Orders (Service PR)`);
+        console.log(`✅ Found ${data.value?.length || 0} Work Orders from WorkOrder API`);
         
         // DEBUG: Log first item
         if (data.value && data.value.length > 0) {
-          console.log('🔍 First Work Order fields:', Object.keys(data.value[0]));
-          console.log('🔍 Sample WO data:', {
-            no: data.value[0].no,
-            buyFromVendorName: data.value[0].buyFromVendorName,
-            orderDate: data.value[0].orderDate,
-            status: data.value[0].status,
-            amount: data.value[0].amount,
-            poType: data.value[0].poType
+          console.log('🔍 First Work Order from API:', {
+            PO_No: data.value[0].PO_No,
+            Status: data.value[0].Status,
+            Buy_from_vendor_name: data.value[0].Buy_from_vendor_name,
+            Buy_From_Vendor_no: data.value[0].Buy_From_Vendor_no,
+            Amount: data.value[0].Amount,
+            OrderDate: data.value[0].OrderDate
           });
         }
         
         if (data.value && data.value.length > 0) {
           workOrderData = data.value;
-          usedEndpoint = 'purchaseDocuments';
+          usedEndpoint = 'WorkOrder';
         }
+      } else {
+        const errorText = await response.text();
+        console.error('❌ WorkOrder API error:', response.status, errorText);
       }
     } catch (error) {
-      console.log(`Work Order API error: ${error.message}`);
+      console.log(`WorkOrder API fetch error: ${error.message}`);
     }
     
-    // OPTION 2: Try WorkOrder endpoint without filter
+    // FALLBACK: Try old endpoints if direct API fails
     if (!workOrderData || workOrderData.length === 0) {
-      console.log('🔄 Trying WorkOrder endpoint without filter...');
-      const fallbackUrl = `${baseUrl}/Company('${companyName}')/purchaseDocuments?$filter=documentType eq 'Order'`;
+      console.log('🔄 Trying fallback endpoints...');
+      
+      // Option 1: Try purchaseDocuments with Service PR filter
+      const workOrderUrl = `${baseUrl}/Company('${companyName}')/purchaseDocuments?$filter=documentType eq 'Order' and poType eq 'Service PR'`;
       
       try {
-        const response = await fetch(fallbackUrl, { headers });
-        console.log(`Fallback Work Order status: ${response.status}`);
+        const response = await fetch(workOrderUrl, { headers });
+        console.log(`Fallback purchaseDocuments status: ${response.status}`);
         
         if (response.ok) {
           const data = await response.json();
-          console.log(`✅ Found ${data.value?.length || 0} purchase documents`);
-          
+          console.log(`✅ Found ${data.value?.length || 0} Work Orders from fallback`);
           if (data.value && data.value.length > 0) {
-            // Filter locally for Service PR
-            const servicePRData = data.value.filter(item => {
-              const poType = item.poType || item.PO_Type || item.po_type;
-              return poType === 'Service PR' || poType === 'Service';
-            });
-            
-            if (servicePRData.length > 0) {
-              console.log(`✅ Filtered locally: ${servicePRData.length} Service PR Work Orders`);
-              workOrderData = servicePRData;
-              usedEndpoint = 'purchaseDocuments';
-            } else {
-              console.log('⚠️ No Service PR Work Orders found');
-              workOrderData = data.value; // Use all as fallback
-            }
+            workOrderData = data.value;
+            usedEndpoint = 'purchaseDocuments';
           }
         }
       } catch (error) {
         console.log(`Fallback error: ${error.message}`);
-      }
-    }
-    
-    // OPTION 3: Try custom endpoint
-    if (!workOrderData || workOrderData.length === 0) {
-      console.log('🔄 Trying WorkOrderAPI custom endpoint...');
-      const customUrl = `${baseUrl}/Company('${companyName}')/WorkOrderAPI`;
-      
-      try {
-        const response = await fetch(customUrl, { headers });
-        console.log(`WorkOrderAPI custom status: ${response.status}`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`✅ Found ${data.value?.length || 0} records from WorkOrderAPI`);
-          
-          if (data.value && data.value.length > 0) {
-            workOrderData = data.value;
-            usedEndpoint = 'WorkOrderAPI';
-          }
-        }
-      } catch (error) {
-        console.log(`WorkOrderAPI custom error: ${error.message}`);
       }
     }
     
@@ -176,8 +144,6 @@ export async function GET(request) {
 }
 
 // Process Work Orders data
-// app/api/business-central/work-order/route.js में processWorkOrdersData function
-
 function processWorkOrdersData(data) {
   console.log(`Processing ${data.length} Work Orders`);
   
@@ -186,15 +152,29 @@ function processWorkOrdersData(data) {
   }
   
   const processedWorkOrders = data.map((wo, index) => {
-    // Extract work order info
-    const workOrderNo = wo.no || wo.number || wo.workOrderNo || `WO-${index + 1}`;
+    // **NEW: Field names from API page 50172**
+    // PO_No, Status, Buy_from_vendor_name, Buy_From_Vendor_no, Amount, OrderDate
     
-    // Vendor info - Business Central fields
-    const vendorName = wo.buyFromVendorName || wo.vendorName || 'Unknown Vendor';
-    const vendorNo = wo.buyFromVendorNo || wo.vendorNo || 'N/A';
+    // 1. WORK ORDER NO - Check both field names
+    let workOrderNo = wo.PO_No || wo.no || wo.number || wo.workOrderNo || `Al-WO-${String(index + 1).padStart(3, '0')}`;
     
-    // Date field
-    const rawOrderDate = wo.orderDate || wo.OrderDate || 'N/A';
+    // Format as WO-XXX if not already
+    if (workOrderNo && !workOrderNo.startsWith('AL-WO-') && !workOrderNo.startsWith('AL-PO-')) {
+      // Extract numbers from PO no if possible
+      const match = workOrderNo.match(/\d+/);
+      if (match) {
+        workOrderNo = `AL-WO-${match[0].padStart(3, '0')}`;
+      } else {
+        workOrderNo = `Al-WO-${String(index + 1).padStart(3, '0')}`;
+      }
+    }
+    
+    // 2. VENDOR INFO - Check both field names
+    const vendorName = wo.Buy_from_vendor_name || wo.buyFromVendorName || wo.vendorName || 'Unknown Vendor';
+    const vendorNo = wo.Buy_From_Vendor_no || wo.buyFromVendorNo || wo.vendorNo || 'N/A';
+    
+    // 3. DATE - Check both field names
+    const rawOrderDate = wo.OrderDate || wo.orderDate || 'N/A';
     
     // Format date
     let formattedDate = 'N/A';
@@ -207,32 +187,32 @@ function processWorkOrdersData(data) {
       }
     }
     
-    // Amount
-    const amount = parseFloat(wo.amount || wo.Amount || 0);
+    // 4. AMOUNT - Check both field names
+    const amount = parseFloat(wo.Amount || wo.amount || 0);
     
-    // Status - FIXED: Try multiple field names
-    const bcStatus = wo.status || wo.Status || wo.documentStatus || 'Open';
-    const poType = wo.poType || wo.PO_Type || 'Service PR';
+    // 5. STATUS - Check both field names
+    const bcStatus = wo.Status || wo.status || wo.documentStatus || 'Open';
     
     return {
       No: workOrderNo,
       VendorName: vendorName,
       VendorNo: vendorNo,
-      Description: wo.Description || wo.description || 'Work Order',
-      Type: wo.Type || 'Service',
+      Description: `Work Order ${workOrderNo}`,
+      Type: 'Service',
       OrderDate: formattedDate,
       TotalAmount: amount,
       Amount: amount,
       Status: bcStatus,
       OriginalStatus: bcStatus,
-      Priority: wo.Priority || 'Medium',
-      AssignedTo: wo.Assigned_To || wo.assignedTo || 'Not Assigned',
+      Priority: 'Medium',
+      AssignedTo: 'Not Assigned',
       Cost: amount,
-      poType: poType
+      poType: 'Service PR'
     };
   });
   
-  // Map statuses to 4 categories - SAME LOGIC AS PO
+  // Rest of the function remains similar but updated for Work Orders...
+  // Status mapping
   const statusMapping = {
     'Open': 'Open',
     'Pending Approval': 'Pending Approval',
@@ -267,11 +247,9 @@ function processWorkOrdersData(data) {
     const originalStatus = wo.OriginalStatus || '';
     let mappedStatus = 'Open';
     
-    // First try exact match
     if (statusMapping[originalStatus]) {
       mappedStatus = statusMapping[originalStatus];
     } else {
-      // Try partial match
       const statusLower = originalStatus.toLowerCase();
       if (statusLower.includes('open') || statusLower.includes('new')) {
         mappedStatus = 'Open';
@@ -509,7 +487,7 @@ function getWorkOrderMockData() {
     ],
     recentWorkOrders: [
       { 
-        No: 'WO-2024-001', 
+        No: 'AL-WO-001', 
         VendorName: 'Tech Maintenance Inc', 
         VendorNo: 'VEND-WO-001',
         Description: 'Machine Preventive Maintenance',
@@ -523,7 +501,7 @@ function getWorkOrderMockData() {
     ],
     rawData: [
       { 
-        No: 'WO-2024-001', 
+        No: 'Al-WO-001', 
         VendorName: 'Tech Maintenance Inc', 
         VendorNo: 'VEND-WO-001',
         OrderDate: '2024-06-28',
@@ -536,7 +514,7 @@ function getWorkOrderMockData() {
         Type: 'Maintenance'
       },
       { 
-        No: 'WO-2024-002', 
+        No: 'AL-WO-002', 
         VendorName: 'Quality Control Corp', 
         VendorNo: 'VEND-WO-003',
         OrderDate: '2024-06-25',
@@ -549,7 +527,7 @@ function getWorkOrderMockData() {
         Type: 'Inspection'
       },
       { 
-        No: 'WO-2024-003', 
+        No: 'AL-WO-003', 
         VendorName: 'Industrial Services Ltd', 
         VendorNo: 'VEND-WO-002',
         OrderDate: '2024-06-20',
@@ -570,8 +548,7 @@ async function getAccessToken() {
   console.log('🔑 Getting Business Central access token...');
   
   try {
-    // HARDCODED VALUES - TEMPORARY FIX
-     const tenantId = process.env.BC_TENANT_ID;
+    const tenantId = process.env.BC_TENANT_ID;
     const clientId = process.env.BC_CLIENT_ID;
     const clientSecret = process.env.BC_CLIENT_SECRET;
     const scope = 'https://api.businesscentral.dynamics.com/.default';

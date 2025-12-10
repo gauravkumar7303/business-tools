@@ -1,4 +1,3 @@
-
 // src/lib/businessCentralApi.js
 export const getPOStatistics = async () => {
   try {
@@ -12,7 +11,10 @@ export const getPOStatistics = async () => {
       }
     });
     
+    console.log('📊 API Response Status:', response.status);
+    
     if (!response.ok) {
+      console.error('❌ API failed with status:', response.status);
       throw new Error(`API failed: ${response.status}`);
     }
     
@@ -22,8 +24,25 @@ export const getPOStatistics = async () => {
       success: result.success,
       dataSource: result.dataSource,
       recordCount: result.recordCount,
-      endpointUsed: result.endpointUsed
+      endpointUsed: result.endpointUsed,
+      hasData: !!result.data
     });
+    
+    // DEBUG: Check if data exists
+    if (!result) {
+      console.error('❌ No result from API');
+      throw new Error('No response from API');
+    }
+    
+    if (!result.data) {
+      console.error('❌ No data in response:', result);
+      // If there's no data but API was successful, return mock
+      if (result.success) {
+        console.log('⚠️ API success but no data, returning mock');
+        return getMockStatistics('api_no_data', 'purchase_orders');
+      }
+      throw new Error('No data received from API');
+    }
     
     if (result.success && result.data) {
       console.log('📊 Processing Purchase Order data...');
@@ -32,11 +51,13 @@ export const getPOStatistics = async () => {
       console.log('📊 Processing fallback data...');
       return convertApiResponseToFrontendFormat(result);
     } else {
+      console.error('❌ No data in response body:', result);
       throw new Error('No data received from API');
     }
     
   } catch (error) {
     console.error('❌ PO API Error:', error.message);
+    console.error('❌ Error stack:', error.stack);
     return getMockStatistics('api_error', 'purchase_orders');
   }
 };
@@ -53,7 +74,10 @@ export const getWorkOrderStatistics = async () => {
       }
     });
     
+    console.log('📊 WO API Response Status:', response.status);
+    
     if (!response.ok) {
+      console.error('❌ Work Order API failed:', response.status);
       throw new Error(`Work Order API failed: ${response.status}`);
     }
     
@@ -63,8 +87,17 @@ export const getWorkOrderStatistics = async () => {
       success: result.success,
       dataSource: result.dataSource,
       recordCount: result.recordCount,
-      endpointUsed: result.endpointUsed
+      endpointUsed: result.endpointUsed,
+      hasData: !!result.data
     });
+    
+    if (!result.data) {
+      console.error('❌ No data in WO response');
+      if (result.success) {
+        return getMockStatistics('api_no_data', 'work_orders');
+      }
+      throw new Error('No Work Order data received from API');
+    }
     
     if (result.success && result.data) {
       console.log('📊 Processing Work Order data...');
@@ -85,6 +118,11 @@ export const getWorkOrderStatistics = async () => {
 // Convert API response to frontend format
 function convertApiResponseToFrontendFormat(apiResponse, dataType = 'purchase_orders') {
   console.log(`🔄 Converting ${dataType} API response...`);
+  console.log('🔍 API Response structure:', {
+    keys: Object.keys(apiResponse),
+    hasData: !!apiResponse.data,
+    dataType: apiResponse.data?.type
+  });
   
   const apiData = apiResponse.data;
   const dataSource = apiResponse.dataSource || 'unknown';
@@ -96,6 +134,12 @@ function convertApiResponseToFrontendFormat(apiResponse, dataType = 'purchase_or
     _apiSuccess: apiResponse.success || false,
     _dataType: dataType
   };
+  
+  // If no data, return mock immediately
+  if (!apiData) {
+    console.log(`⚠️ No apiData for ${dataType}, returning mock`);
+    return getMockStatistics('no_data_in_response', dataType);
+  }
   
   if (dataType === 'purchase_orders') {
     // Purchase Orders data
@@ -120,10 +164,12 @@ function convertApiResponseToFrontendFormat(apiResponse, dataType = 'purchase_or
         }));
       } else {
         convertedData.vendorWiseData = [];
+        console.log('⚠️ No vendor data in PO response');
       }
       
       // Raw data for list
       convertedData.rawData = apiData.rawData || apiData.recentPOs || [];
+      console.log(`📋 Raw data count: ${convertedData.rawData.length}`);
       
       // Summary data
       convertedData.summary = apiData.summary || {
@@ -135,7 +181,7 @@ function convertApiResponseToFrontendFormat(apiResponse, dataType = 'purchase_or
       };
       
     } else {
-      console.log('⚠️ Unknown PO data format, using mock data');
+      console.log('⚠️ Unknown PO data format:', apiData.type);
       return getMockStatistics('unknown_format', 'purchase_orders');
     }
     
@@ -177,7 +223,7 @@ function convertApiResponseToFrontendFormat(apiResponse, dataType = 'purchase_or
       };
       
     } else {
-      console.log('⚠️ Unknown Work Order data format, using mock data');
+      console.log('⚠️ Unknown Work Order data format:', apiData.type);
       return getMockStatistics('unknown_format', 'work_orders');
     }
   }
@@ -218,26 +264,55 @@ function getMockStatistics(source = 'mock_fallback', dataType = 'purchase_orders
         total: 200
       },
       vendorWiseData: [
+        { vendorName: 'AMBEY TRADERS', poCount: 35, totalAmount: 1750000 },
         { vendorName: 'ABC Suppliers', poCount: 25, totalAmount: 1250000 },
-        { vendorName: 'XYZ Corporation', poCount: 18, totalAmount: 980000 },
-        { vendorName: 'Global Traders', poCount: 15, totalAmount: 750000 }
+        { vendorName: 'XYZ Corporation', poCount: 18, totalAmount: 980000 }
       ],
       rawData: [
         {
-          No: 'PO-1001',
-          VendorName: 'ABC Suppliers',
+          No: 'AL-PO-0001',
+          VendorName: 'AMBEY TRADERS',
           VendorNo: 'VEND-001',
           OrderDate: '2024-01-15',
           TotalAmount: 125000,
-          Status: 'Released'
+          Status: 'Released',
+          Description: 'Raw Materials'
         },
         {
-          No: 'PO-1002',
-          VendorName: 'XYZ Corporation',
+          No: 'AL-PO-0002',
+          VendorName: 'ABC Suppliers',
           VendorNo: 'VEND-002',
           OrderDate: '2024-01-18',
           TotalAmount: 98000,
-          Status: 'Pending Approval'
+          Status: 'Pending Approval',
+          Description: 'Electronics Components'
+        },
+        {
+          No: 'AL-PO-0003',
+          VendorName: 'XYZ Corporation',
+          VendorNo: 'VEND-003',
+          OrderDate: '2024-01-20',
+          TotalAmount: 75000,
+          Status: 'Open',
+          Description: 'Packaging Materials'
+        },
+        {
+          No: 'AL-PO-0004',
+          VendorName: 'Global Traders',
+          VendorNo: 'VEND-004',
+          OrderDate: '2024-01-22',
+          TotalAmount: 150000,
+          Status: 'Released',
+          Description: 'Machinery Parts'
+        },
+        {
+          No: 'AL-PO-0005',
+          VendorName: 'Tech Solutions Ltd',
+          VendorNo: 'VEND-005',
+          OrderDate: '2024-01-25',
+          TotalAmount: 85000,
+          Status: 'Short Closed',
+          Description: 'Software License'
         }
       ],
       summary: {
@@ -266,22 +341,59 @@ function getMockStatistics(source = 'mock_fallback', dataType = 'purchase_orders
       ],
       rawData: [
         { 
-          No: 'WO-2024-001', 
+          No: 'WO-001', 
           VendorName: 'Tech Maintenance Inc', 
           VendorNo: 'VEND-WO-001',
           OrderDate: '2024-06-28',
           TotalAmount: 45000,
           Status: 'Open',
-          Description: 'Machine Preventive Maintenance'
+          Description: 'Machine Preventive Maintenance',
+          Priority: 'High',
+          AssignedTo: 'John Smith'
         },
         { 
-          No: 'WO-2024-002', 
+          No: 'WO-002', 
           VendorName: 'Quality Control Corp', 
           VendorNo: 'VEND-WO-003',
           OrderDate: '2024-06-25',
           TotalAmount: 32000,
           Status: 'Released',
-          Description: 'Monthly Quality Inspection'
+          Description: 'Monthly Quality Inspection',
+          Priority: 'Medium',
+          AssignedTo: 'Sarah Johnson'
+        },
+        { 
+          No: 'WO-003', 
+          VendorName: 'Industrial Services Ltd', 
+          VendorNo: 'VEND-WO-002',
+          OrderDate: '2024-06-20',
+          TotalAmount: 68000,
+          Status: 'Pending Approval',
+          Description: 'Factory Equipment Repair',
+          Priority: 'High',
+          AssignedTo: 'Mike Wilson'
+        },
+        { 
+          No: 'WO-004', 
+          VendorName: 'Electrical Works', 
+          VendorNo: 'VEND-WO-005',
+          OrderDate: '2024-06-18',
+          TotalAmount: 25000,
+          Status: 'Short Closed',
+          Description: 'Wiring Installation',
+          Priority: 'Medium',
+          AssignedTo: 'David Lee'
+        },
+        { 
+          No: 'WO-005', 
+          VendorName: 'HVAC Services', 
+          VendorNo: 'VEND-WO-006',
+          OrderDate: '2024-06-15',
+          TotalAmount: 18000,
+          Status: 'Released',
+          Description: 'AC Maintenance',
+          Priority: 'Low',
+          AssignedTo: 'Emma Brown'
         }
       ],
       summary: {
