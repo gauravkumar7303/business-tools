@@ -2714,18 +2714,121 @@ function processResourceSheet(sheet, result, sheetName) {
 /**
  * Process Assignment sheet from Excel - FIXED VERSION
  */
+// function processAssignmentSheet(sheet, result, sheetName) {
+//   try {
+//     console.log(`🔄 Processing assignment sheet: ${sheetName}`);
+    
+//     // Convert sheet to array of arrays
+//     const jsonData = XLSX.utils.sheet_to_json(sheet, {
+//       defval: '',
+//       raw: false,
+//       header: 1
+//     });
+    
+//     console.log(`📊 Assignment sheet raw data:`, jsonData);
+    
+//     if (!jsonData || jsonData.length < 2) {
+//       console.warn(`Assignment sheet "${sheetName}" has insufficient data`);
+//       return;
+//     }
+    
+//     const headers = jsonData[0] || [];
+//     console.log(`🔗 Assignment headers:`, headers);
+    
+//     const assignments = [];
+    
+//     // Process each data row
+//     for (let i = 1; i < jsonData.length; i++) {
+//       const row = jsonData[i];
+//       const assignment = {};
+      
+//       // Column 0: Task_Name
+//       if (row[0] !== undefined) {
+//         assignment['Task Name'] = cleanExcelValue(row[0]);
+//       }
+      
+//       // Column 1: Resource_Name
+//       if (row[1] !== undefined) {
+//         assignment['Resource Name'] = cleanExcelValue(row[1]);
+//       }
+      
+//       // Column 2: Percent_Work_Complete - THIS IS THE KEY
+//       if (row[2] !== undefined) {
+//         const percentValue = row[2];
+//         console.log(`🔢 Processing Percent_Work_Complete:`, {
+//           raw: percentValue,
+//           type: typeof percentValue
+//         });
+        
+//         // Clean and parse the value
+//         const cleanedValue = cleanExcelValue(percentValue);
+//         console.log(`✅ Cleaned value:`, cleanedValue, typeof cleanedValue);
+        
+//         // Store with multiple key names for compatibility
+//         assignment['Percent Work Complete'] = cleanedValue;
+//         assignment['Percent_Work_Complete'] = cleanedValue;
+//         assignment['% Work Complete'] = cleanedValue;
+//       }
+      
+//       // Column 3: Scheduled_Work
+//       if (row[3] !== undefined) {
+//         assignment['Scheduled Work'] = cleanExcelValue(row[3]);
+//       }
+      
+//       // Column 4: Units
+//       if (row[4] !== undefined) {
+//         assignment['Units'] = cleanExcelValue(row[4]);
+//       }
+      
+//       console.log(`📝 Created assignment:`, assignment);
+      
+//       // Only add if it has task and resource
+//       if (assignment['Task Name'] && assignment['Resource Name']) {
+//         assignments.push(assignment);
+//       }
+//     }
+    
+//     console.log(`✅ Extracted ${assignments.length} assignments from "${sheetName}"`);
+    
+//     if (assignments.length > 0) {
+//       console.log('🔍 All extracted assignments:', assignments);
+      
+//       // Debug each assignment
+//       assignments.forEach((assignment, index) => {
+//         console.log(`📊 Assignment ${index}:`, {
+//           task: assignment['Task Name'],
+//           resource: assignment['Resource Name'],
+//           percent: assignment['Percent Work Complete'],
+//           percentType: typeof assignment['Percent Work Complete']
+//         });
+//       });
+      
+//       result.assignments = assignments;
+//       result.extractedSheets.push(`${sheetName} (${assignments.length} assignments)`);
+//     } else {
+//       console.warn(`No valid assignments found in sheet "${sheetName}"`);
+//     }
+    
+//   } catch (error) {
+//     console.error(`❌ Error processing assignment sheet "${sheetName}":`, error);
+//   }
+// }
+
+/**
+ * Process Assignment sheet from Excel - USING Percent_Work_Complete, Actual_Work AND Remaining_Work
+ */
 function processAssignmentSheet(sheet, result, sheetName) {
   try {
-    console.log(`🔄 Processing assignment sheet: ${sheetName}`);
+    console.log(`📄 Processing assignment sheet: ${sheetName}`);
     
-    // Convert sheet to array of arrays
+    // Convert sheet to JSON
     const jsonData = XLSX.utils.sheet_to_json(sheet, {
       defval: '',
       raw: false,
       header: 1
     });
     
-    console.log(`📊 Assignment sheet raw data:`, jsonData);
+    console.log(`📊 Assignment sheet has ${jsonData.length} rows`);
     
     if (!jsonData || jsonData.length < 2) {
       console.warn(`Assignment sheet "${sheetName}" has insufficient data`);
@@ -2733,57 +2836,82 @@ function processAssignmentSheet(sheet, result, sheetName) {
     }
     
     const headers = jsonData[0] || [];
-    console.log(`🔗 Assignment headers:`, headers);
+    const cleanedHeaders = headers.map(h => h ? h.toString().trim() : '');
+    
+    console.log(`🔗 Assignment headers:`, cleanedHeaders.filter(h => h));
+    
+    // Normalize assignment headers
+    const assignmentMapping = {
+      'Task Name': ['Task_Name', 'Task Name', 'Task', 'Activity'],
+      'Resource Name': ['Resource_Name', 'Resource Name', 'Resource', 'Assigned To'],
+      'Percent Work Complete': ['Percent_Work_Complete', 'Percent Work Complete', '% Work Complete', 'Progress'],
+      'Scheduled Work': ['Scheduled_Work', 'Scheduled Work', 'Work'],
+      'Units': ['Units', 'Unit']
+    };
+    
+    const normalizedHeaders = cleanedHeaders.map(header => {
+      for (const [standardName, possibleNames] of Object.entries(assignmentMapping)) {
+        if (possibleNames.includes(header)) {
+          return standardName;
+        }
+      }
+      return header;
+    });
+    
+    console.log(`🔗 Normalized assignment headers:`, normalizedHeaders.filter(h => h));
     
     const assignments = [];
     
-    // Process each data row
     for (let i = 1; i < jsonData.length; i++) {
       const row = jsonData[i];
       const assignment = {};
+      let hasData = false;
       
-      // Column 0: Task_Name
-      if (row[0] !== undefined) {
-        assignment['Task Name'] = cleanExcelValue(row[0]);
-      }
+      normalizedHeaders.forEach((header, index) => {
+        if (header && header !== '' && index < row.length) {
+          let value = row[index];
+          value = cleanExcelValue(value);
+          
+          if (value !== '') {
+            assignment[header] = value;
+            hasData = true;
+          }
+        }
+      });
       
-      // Column 1: Resource_Name
-      if (row[1] !== undefined) {
-        assignment['Resource Name'] = cleanExcelValue(row[1]);
-      }
-      
-      // Column 2: Percent_Work_Complete - THIS IS THE KEY
-      if (row[2] !== undefined) {
-        const percentValue = row[2];
-        console.log(`🔢 Processing Percent_Work_Complete:`, {
-          raw: percentValue,
-          type: typeof percentValue
-        });
+      if (hasData && Object.keys(assignment).length > 0) {
+        // ✅ ✅ ✅ NEW CODE: CALCULATE ACTUAL WORK AND REMAINING WORK ✅ ✅ ✅
+        const percentComplete = parseFloat(assignment['Percent Work Complete']) || 0;
+        const scheduledWork = parseFloat(assignment['Scheduled Work']) || 0;
         
-        // Clean and parse the value
-        const cleanedValue = cleanExcelValue(percentValue);
-        console.log(`✅ Cleaned value:`, cleanedValue, typeof cleanedValue);
+        if (scheduledWork > 0) {
+          // Calculate Actual Work (completed work hours)
+          const actualWork = (scheduledWork * percentComplete) / 100;
+          assignment['Actual Work'] = actualWork;
+          
+          // Calculate Remaining Work (pending work hours)
+          const remainingWork = scheduledWork - actualWork;
+          assignment['Remaining Work'] = remainingWork;
+          
+          console.log(`📊 Assignment calculation:`, {
+            task: assignment['Task Name'],
+            resource: assignment['Resource Name'],
+            percentComplete: `${percentComplete}%`,
+            scheduledWork: `${scheduledWork}h`,
+            actualWork: `${actualWork.toFixed(2)}h`,
+            remainingWork: `${remainingWork.toFixed(2)}h`
+          });
+        } else {
+          // If no scheduled work, set both to 0
+          assignment['Actual Work'] = 0;
+          assignment['Remaining Work'] = 0;
+        }
+        // ✅ ✅ ✅ END OF NEW CODE ✅ ✅ ✅
         
         // Store with multiple key names for compatibility
-        assignment['Percent Work Complete'] = cleanedValue;
-        assignment['Percent_Work_Complete'] = cleanedValue;
-        assignment['% Work Complete'] = cleanedValue;
-      }
-      
-      // Column 3: Scheduled_Work
-      if (row[3] !== undefined) {
-        assignment['Scheduled Work'] = cleanExcelValue(row[3]);
-      }
-      
-      // Column 4: Units
-      if (row[4] !== undefined) {
-        assignment['Units'] = cleanExcelValue(row[4]);
-      }
-      
-      console.log(`📝 Created assignment:`, assignment);
-      
-      // Only add if it has task and resource
-      if (assignment['Task Name'] && assignment['Resource Name']) {
+        assignment['Completed Work'] = assignment['Actual Work'];
+        assignment['Work'] = assignment['Scheduled Work'];
+        
         assignments.push(assignment);
       }
     }
@@ -2791,18 +2919,7 @@ function processAssignmentSheet(sheet, result, sheetName) {
     console.log(`✅ Extracted ${assignments.length} assignments from "${sheetName}"`);
     
     if (assignments.length > 0) {
-      console.log('🔍 All extracted assignments:', assignments);
-      
-      // Debug each assignment
-      assignments.forEach((assignment, index) => {
-        console.log(`📊 Assignment ${index}:`, {
-          task: assignment['Task Name'],
-          resource: assignment['Resource Name'],
-          percent: assignment['Percent Work Complete'],
-          percentType: typeof assignment['Percent Work Complete']
-        });
-      });
-      
+      console.log('📋 Sample assignment with calculated work:', assignments[0]);
       result.assignments = assignments;
       result.extractedSheets.push(`${sheetName} (${assignments.length} assignments)`);
     } else {
@@ -2810,7 +2927,42 @@ function processAssignmentSheet(sheet, result, sheetName) {
     }
     
   } catch (error) {
-    console.error(`❌ Error processing assignment sheet "${sheetName}":`, error);
+    console.error(`Error processing assignment sheet "${sheetName}":`, error);
+  }
+}
+
+/**
+ * Parse hours from Excel value (32h, 4d, 0.5w, etc.)
+ */
+function parseHoursFromExcel(value) {
+  if (value === null || value === undefined || value === '') {
+    return 0;
+  }
+  
+  if (typeof value === 'number') {
+    // If it's already a number, assume it's in hours
+    return value;
+  }
+  
+  const str = String(value).toLowerCase().trim();
+  
+  // Handle Excel duration format
+  if (str.includes('h')) {
+    // Hours: "32h" → 32
+    return parseFloat(str.replace('h', '').trim()) || 0;
+  } else if (str.includes('d')) {
+    // Days: "4d" → 4 × 8 = 32 hours
+    return (parseFloat(str.replace('d', '').trim()) || 0) * 8;
+  } else if (str.includes('w')) {
+    // Weeks: "1w" → 1 × 40 = 40 hours
+    return (parseFloat(str.replace('w', '').trim()) || 0) * 40;
+  } else if (str.includes('m')) {
+    // Months: "1m" → 1 × 160 = 160 hours (approx)
+    return (parseFloat(str.replace('m', '').trim()) || 0) * 160;
+  } else {
+    // Try to parse as number
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
   }
 }
 

@@ -2952,7 +2952,7 @@ const renderTaskList = () => {
         </div>
       </div>
 
-      <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
+      {/* <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-blue-600 font-medium">📌 Headings</span>
           <span className="text-sm text-blue-600">are shown in <strong>bold</strong> with purple background</span>
@@ -2961,7 +2961,7 @@ const renderTaskList = () => {
           • Outline Level 1 tasks are considered as headings<br />
           • Click on the arrow to expand/collapse heading details
         </div>
-      </div>
+      </div> */}
 
       <div className="overflow-x-auto border rounded-lg">
         <table className="w-full">
@@ -3108,330 +3108,808 @@ const renderTaskList = () => {
   };
 
   // Render Assignment List
-  const renderAssignmentList = () => {
-    if (!content?.assignments.length) {
-      return (
-        <div className="text-center py-12">
-          <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Assignments Found</h3>
-          <p className="text-gray-500">The uploaded file doesn't contain assignment data.</p>
-        </div>
-      );
+  // const renderAssignmentList = () => {
+  //   if (!content?.assignments.length) {
+  //     return (
+  //       <div className="text-center py-12">
+  //         <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+  //         <h3 className="text-lg font-medium text-gray-900 mb-2">No Assignments Found</h3>
+  //         <p className="text-gray-500">The uploaded file doesn't contain assignment data.</p>
+  //       </div>
+  //     );
+  //   }
+
+  //   return (
+  //     <div className="space-y-6">
+  //       <div className="flex justify-between items-center">
+  //         <div>
+  //           <h3 className="text-xl font-bold text-gray-800 mb-2">🔗 Assignment List</h3>
+  //           <p className="text-gray-600">
+  //             {filteredAssignments.length} assignments
+  //           </p>
+  //         </div>
+  //         <div className="relative">
+  //           <input
+  //             type="text"
+  //             placeholder="Search assignments..."
+  //             value={searchTerm}
+  //             onChange={(e) => setSearchTerm(e.target.value)}
+  //             className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+  //           />
+  //           <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+  //         </div>
+  //       </div>
+
+  //       <div className="overflow-x-auto border rounded-lg">
+  //         <table className="w-full">
+  //           <thead className="bg-gray-50">
+  //             <tr>
+  //               <th className="p-4 text-left font-semibold text-gray-700">Task Name</th>
+  //               <th className="p-4 text-left font-semibold text-gray-700">Resource Name</th>
+  //               <th className="p-4 text-left font-semibold text-gray-700">% Work Complete</th>
+  //               <th className="p-4 text-left font-semibold text-gray-700">Work (Hours)</th>
+  //               <th className="p-4 text-left font-semibold text-gray-700">Units</th>
+  //               <th className="p-4 text-left font-semibold text-gray-700">Remaining Work</th>
+  //             </tr>
+  //           </thead>
+  //           <tbody className="divide-y divide-gray-200">
+  //             {filteredAssignments.map((assignment, index) => {
+  //               const taskName = assignment['Task Name'] || assignment.Task || 'Unnamed Task';
+  //               const resourceName = assignment['Resource Name'] || assignment.Resource || 'Unnamed Resource';
+  //               const percentComplete = parseFloat(assignment['% Work Complete']) || 0;
+  //               const work = parseFloat(assignment.Work) || 0;
+  //               const units = assignment.Units || '100%';
+  //               const remainingWork = work * (100 - percentComplete) / 100;
+
+  //               return (
+  //                 <tr key={index} className="hover:bg-gray-50">
+  //                   <td className="p-4 font-medium text-gray-800">
+  //                     {taskName}
+  //                   </td>
+  //                   <td className="p-4 font-medium text-gray-700">
+  //                     {resourceName}
+  //                   </td>
+  //                   <td className="p-4">
+  //                     <div className="flex items-center gap-2">
+  //                       <div className="w-16 bg-gray-200 rounded-full h-2">
+  //                         <div
+  //                           className={`h-2 rounded-full ${percentComplete >= 80 ? 'bg-green-600' :
+  //                             percentComplete >= 50 ? 'bg-yellow-600' :
+  //                               'bg-red-600'
+  //                             }`}
+  //                           style={{ width: `${Math.min(100, percentComplete)}%` }}
+  //                         ></div>
+  //                       </div>
+  //                       <span className="text-sm font-medium">{percentComplete}%</span>
+  //                     </div>
+  //                   </td>
+  //                   <td className="p-4 text-gray-700">
+  //                     {work ? `${work}h` : '-'}
+  //                   </td>
+  //                   <td className="p-4 text-gray-700">
+  //                     {units}
+  //                   </td>
+  //                   <td className="p-4 text-gray-700">
+  //                     {remainingWork > 0 ? `${remainingWork.toFixed(1)}h` : '-'}
+  //                   </td>
+  //                 </tr>
+  //               );
+  //             })}
+  //           </tbody>
+  //         </table>
+  //       </div>
+
+  //       {filteredAssignments.length === 0 && (
+  //         <div className="text-center py-8 text-gray-500">
+  //           No assignments found matching your search criteria.
+  //         </div>
+  //       )}
+  //     </div>
+  //   );
+  // };
+ // Add this function to calculate overall progress from assignments
+const calculateOverallProgressFromAssignments = useMemo(() => {
+  if (!content?.assignments || content.assignments.length === 0) return 0;
+  
+  console.log('📊 Calculating overall progress from assignments...');
+  
+  let totalCompletion = 0;
+  let validAssignments = 0;
+  
+  // Group assignments by task to avoid double counting
+  const taskCompletionMap = {};
+  
+  content.assignments.forEach(assignment => {
+    const taskName = assignment['Task Name'] || assignment.Task || '';
+    const percentComplete = assignment['Percent Work Complete'];
+    
+    if (taskName && percentComplete !== undefined && percentComplete !== null && percentComplete !== '') {
+      const completionValue = parseFloat(percentComplete);
+      if (!isNaN(completionValue)) {
+        if (!taskCompletionMap[taskName]) {
+          taskCompletionMap[taskName] = [];
+        }
+        taskCompletionMap[taskName].push(completionValue);
+      }
     }
+  });
+  
+  // Calculate average per task
+  Object.values(taskCompletionMap).forEach(taskCompletions => {
+    if (taskCompletions.length > 0) {
+      const taskAverage = taskCompletions.reduce((a, b) => a + b, 0) / taskCompletions.length;
+      totalCompletion += Math.min(100, Math.max(0, taskAverage));
+      validAssignments++;
+    }
+  });
+  
+  const overallProgress = validAssignments > 0 ? totalCompletion / validAssignments : 0;
+  
+  console.log('Overall progress from assignments:', {
+    totalAssignments: content.assignments.length,
+    tasksWithAssignments: Object.keys(taskCompletionMap).length,
+    validAssignments,
+    overallProgress: overallProgress.toFixed(1) + '%'
+  });
+  
+  return overallProgress;
+}, [content?.assignments]);
 
+// Count in-progress tasks from assignments
+const inProgressTasksFromAssignments = useMemo(() => {
+  if (!content?.assignments || content.assignments.length === 0) return 0;
+  
+  const taskStatusMap = {};
+  
+  content.assignments.forEach(assignment => {
+    const taskName = assignment['Task Name'] || assignment.Task || '';
+    const percentComplete = parseFloat(assignment['Percent Work Complete']) || 0;
+    
+    if (taskName) {
+      if (!taskStatusMap[taskName]) {
+        taskStatusMap[taskName] = { percentComplete: 0, count: 0 };
+      }
+      taskStatusMap[taskName].percentComplete += percentComplete;
+      taskStatusMap[taskName].count++;
+    }
+  });
+  
+  let inProgressCount = 0;
+  
+  Object.values(taskStatusMap).forEach(taskData => {
+    const avgCompletion = taskData.percentComplete / taskData.count;
+    if (avgCompletion > 0 && avgCompletion < 100) {
+      inProgressCount++;
+    }
+  });
+  
+  console.log('In-progress tasks from assignments:', inProgressCount);
+  return inProgressCount;
+}, [content?.assignments]);
+  // Render Assignment List - SIMPLIFIED VERSION
+// ============================================================================
+// FILE: page.js
+// COMPLETE UPDATED renderAssignmentList FUNCTION
+// ============================================================================
+
+// Render Assignment List - WITH WORK HOURS BREAKDOWN
+const renderAssignmentList = () => {
+  if (!content?.assignments.length) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">🔗 Assignment List</h3>
-            <p className="text-gray-600">
-              {filteredAssignments.length} assignments
-            </p>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search assignments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-4 text-left font-semibold text-gray-700">Task Name</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Resource Name</th>
-                <th className="p-4 text-left font-semibold text-gray-700">% Work Complete</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Work (Hours)</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Units</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Remaining Work</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredAssignments.map((assignment, index) => {
-                const taskName = assignment['Task Name'] || assignment.Task || 'Unnamed Task';
-                const resourceName = assignment['Resource Name'] || assignment.Resource || 'Unnamed Resource';
-                const percentComplete = parseFloat(assignment['% Work Complete']) || 0;
-                const work = parseFloat(assignment.Work) || 0;
-                const units = assignment.Units || '100%';
-                const remainingWork = work * (100 - percentComplete) / 100;
-
-                return (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="p-4 font-medium text-gray-800">
-                      {taskName}
-                    </td>
-                    <td className="p-4 font-medium text-gray-700">
-                      {resourceName}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${percentComplete >= 80 ? 'bg-green-600' :
-                              percentComplete >= 50 ? 'bg-yellow-600' :
-                                'bg-red-600'
-                              }`}
-                            style={{ width: `${Math.min(100, percentComplete)}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{percentComplete}%</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-700">
-                      {work ? `${work}h` : '-'}
-                    </td>
-                    <td className="p-4 text-gray-700">
-                      {units}
-                    </td>
-                    <td className="p-4 text-gray-700">
-                      {remainingWork > 0 ? `${remainingWork.toFixed(1)}h` : '-'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredAssignments.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No assignments found matching your search criteria.
-          </div>
-        )}
+      <div className="text-center py-12">
+        <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Assignments Found</h3>
+        <p className="text-gray-500">The uploaded file doesn't contain assignment data.</p>
       </div>
     );
-  };
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">🔗 Assignment List</h3>
+          <p className="text-gray-600">
+            {filteredAssignments.length} assignments
+          </p>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search assignments..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+
+      {/* ✅ ✅ ✅ NEW: Explanation Card ✅ ✅ ✅ */}
+      {/* <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-blue-600 font-medium">📊 Work Hours Calculation:</span>
+        </div>
+        <div className="text-sm text-blue-700 space-y-1">
+          <div><strong>Scheduled Work:</strong> कुल work hours (Total hours planned)</div>
+          <div><strong>Actual Work:</strong> Scheduled Work × (% Complete ÷ 100) = काम हो गए hours</div>
+          <div><strong>Remaining Work:</strong> Scheduled Work - Actual Work = बाकी hours</div>
+        </div>
+      </div> */}
+      {/* ✅ ✅ ✅ END OF NEW CARD ✅ ✅ ✅ */}
+
+      <div className="overflow-x-auto border rounded-lg">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="p-4 text-left font-semibold text-gray-700">Task Name</th>
+              <th className="p-4 text-left font-semibold text-gray-700">Resource Name</th>
+              <th className="p-4 text-left font-semibold text-gray-700">% Complete</th>
+              {/* ✅ ✅ ✅ NEW COLUMNS ✅ ✅ ✅ */}
+              <th className="p-4 text-left font-semibold text-gray-700">Scheduled Work 📊</th>
+              <th className="p-4 text-left font-semibold text-gray-700">Actual Work ✅</th>
+              <th className="p-4 text-left font-semibold text-gray-700">Remaining Work ⏳</th>
+              {/* ✅ ✅ ✅ END OF NEW COLUMNS ✅ ✅ ✅ */}
+              <th className="p-4 text-left font-semibold text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredAssignments.map((assignment, index) => {
+              const taskName = assignment['Task Name'] || assignment.Task || 'Unnamed Task';
+              const resourceName = assignment['Resource Name'] || assignment.Resource || 'Unnamed Resource';
+              const percentComplete = parseFloat(assignment['Percent Work Complete']) || 0;
+              
+              // ✅ ✅ ✅ NEW: Get calculated work hours ✅ ✅ ✅
+              const scheduledWork = parseFloat(assignment['Scheduled Work']) || 0;
+              const actualWork = parseFloat(assignment['Actual Work']) || 0;
+              const remainingWork = parseFloat(assignment['Remaining Work']) || 0;
+              // ✅ ✅ ✅ END ✅ ✅ ✅
+              
+              // Determine status
+              let status = 'Not Started';
+              let statusColor = 'bg-gray-100 text-gray-800';
+              
+              if (percentComplete >= 100) {
+                status = 'Completed';
+                statusColor = 'bg-green-100 text-green-800';
+              } else if (percentComplete > 0 && percentComplete < 100) {
+                status = 'In Progress';
+                statusColor = 'bg-blue-100 text-blue-800';
+              } else if (remainingWork === 0 && scheduledWork > 0) {
+                status = 'Completed';
+                statusColor = 'bg-green-100 text-green-800';
+              }
+
+              return (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="p-4 font-medium text-gray-800">
+                    {taskName}
+                  </td>
+                  <td className="p-4 font-medium text-gray-700">
+                    {resourceName}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className={`h-2.5 rounded-full ${
+                            percentComplete >= 100 ? 'bg-green-600' :
+                            percentComplete >= 80 ? 'bg-green-500' :
+                            percentComplete >= 50 ? 'bg-yellow-500' :
+                            percentComplete > 0 ? 'bg-blue-500' :
+                            'bg-gray-400'
+                          }`}
+                          style={{ width: `${Math.min(100, percentComplete)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium min-w-[40px]">
+                        {percentComplete.toFixed(1)}%
+                      </span>
+                    </div>
+                  </td>
+                  
+                  {/* ✅ ✅ ✅ NEW: Scheduled Work Column ✅ ✅ ✅ */}
+                  <td className="p-4">
+                    <div className="font-medium text-blue-600">
+                      {scheduledWork > 0 ? `${scheduledWork.toFixed(1)}h` : '0h'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Total planned
+                    </div>
+                  </td>
+                  
+                  {/* ✅ ✅ ✅ NEW: Actual Work Column ✅ ✅ ✅ */}
+                  <td className="p-4">
+                    <div className="font-medium text-green-600">
+                      {actualWork > 0 ? `${actualWork.toFixed(1)}h` : '0h'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Completed
+                    </div>
+                  </td>
+                  
+                  {/* ✅ ✅ ✅ NEW: Remaining Work Column ✅ ✅ ✅ */}
+                  <td className="p-4">
+                    <div className="font-medium text-orange-600">
+                      {remainingWork > 0 ? `${remainingWork.toFixed(1)}h` : '0h'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Pending
+                    </div>
+                  </td>
+                  {/* ✅ ✅ ✅ END OF NEW COLUMNS ✅ ✅ ✅ */}
+                  
+                  <td className="p-4">
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusColor}`}>
+                      {status}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {/* {filteredAssignments.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6">
+          <h4 className="font-bold text-gray-700 mb-4">📊 Work Hours Summary</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {filteredAssignments
+                  .reduce((sum, a) => sum + (parseFloat(a['Scheduled Work']) || 0), 0)
+                  .toFixed(1)}h
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Total Scheduled Work</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {filteredAssignments
+                  .reduce((sum, a) => sum + (parseFloat(a['Actual Work']) || 0), 0)
+                  .toFixed(1)}h
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Total Completed Work</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {filteredAssignments
+                  .reduce((sum, a) => sum + (parseFloat(a['Remaining Work']) || 0), 0)
+                  .toFixed(1)}h
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Total Remaining Work</div>
+            </div>
+          </div>
+        </div>
+      )} */}
+      {/* ✅ ✅ ✅ END OF SUMMARY CARD ✅ ✅ ✅ */}
+
+      {/* {filteredAssignments.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No assignments found matching your search criteria.
+        </div>
+      )} */}
+    </div>
+  );
+};
+
 
   // Render Risk Analysis
-  const renderRiskAnalysis = () => {
-    if (!riskAnalysis) {
-  return (
-    <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl">
-      <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-xl font-bold text-gray-800 mb-3">No Risk Analysis Available</h3>
-      <p className="text-gray-600 mb-6">Risk analysis could not be generated from the uploaded file.</p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
-        <span className="text-sm">Try re-uploading your project file</span>
-      </div>
-    </div>
-  );
-}
-if (riskAnalysis.risks.length === 0) {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">✅ Risk Analysis</h3>
-        <p className="text-gray-600">
-          No potential risks detected in the project
-        </p>
-      </div>
+//   const renderRiskAnalysis = () => {
+//     if (!riskAnalysis) {
+//   return (
+//     <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl">
+//       <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+//       <h3 className="text-xl font-bold text-gray-800 mb-3">No Risk Analysis Available</h3>
+//       <p className="text-gray-600 mb-6">Risk analysis could not be generated from the uploaded file.</p>
+//       <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+//         <span className="text-sm">Try re-uploading your project file</span>
+//       </div>
+//     </div>
+//   );
+// }
+// if (riskAnalysis.risks.length === 0) {
+//   return (
+//     <div className="space-y-8">
+//       <div>
+//         <h3 className="text-xl font-bold text-gray-800 mb-2">✅ Risk Analysis</h3>
+//         <p className="text-gray-600">
+//           No potential risks detected in the project
+//         </p>
+//       </div>
 
-      {/* Positive Status Card */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-green-100 rounded-lg">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-          <div>
-            <h4 className="text-lg font-bold text-green-800">Project Health: Excellent</h4>
-            <p className="text-green-700">No major risks identified. Your project is on track.</p>
-          </div>
-        </div>
+//       {/* Positive Status Card */}
+//       <div className="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200">
+//         <div className="flex items-center gap-4">
+//           <div className="p-3 bg-green-100 rounded-lg">
+//             <CheckCircle className="w-8 h-8 text-green-600" />
+//           </div>
+//           <div>
+//             <h4 className="text-lg font-bold text-green-800">Project Health: Excellent</h4>
+//             <p className="text-green-700">No major risks identified. Your project is on track.</p>
+//           </div>
+//         </div>
         
-        {/* Health Indicators */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {projectStats ? projectStats.avgCompletion.toFixed(0) + '%' : 'N/A'}
-            </div>
-            <div className="text-sm text-gray-600">Progress Rate</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {projectStats ? projectStats.overdueTasks : '0'}
-            </div>
-            <div className="text-sm text-gray-600">Overdue Tasks</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {projectStats ? projectStats.completedTasks : '0'}
-            </div>
-            <div className="text-sm text-gray-600">Completed</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {projectStats ? 'Good' : 'N/A'}
-            </div>
-            <div className="text-sm text-gray-600">Overall Status</div>
-          </div>
+//         {/* Health Indicators */}
+//         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+//           <div className="text-center p-3 bg-white rounded-lg">
+//             <div className="text-2xl font-bold text-green-600">
+//               {projectStats ? projectStats.avgCompletion.toFixed(0) + '%' : 'N/A'}
+//             </div>
+//             <div className="text-sm text-gray-600">Progress Rate</div>
+//           </div>
+//           <div className="text-center p-3 bg-white rounded-lg">
+//             <div className="text-2xl font-bold text-green-600">
+//               {projectStats ? projectStats.overdueTasks : '0'}
+//             </div>
+//             <div className="text-sm text-gray-600">Overdue Tasks</div>
+//           </div>
+//           <div className="text-center p-3 bg-white rounded-lg">
+//             <div className="text-2xl font-bold text-green-600">
+//               {projectStats ? projectStats.completedTasks : '0'}
+//             </div>
+//             <div className="text-sm text-gray-600">Completed</div>
+//           </div>
+//           <div className="text-center p-3 bg-white rounded-lg">
+//             <div className="text-2xl font-bold text-green-600">
+//               {projectStats ? 'Good' : 'N/A'}
+//             </div>
+//             <div className="text-sm text-gray-600">Overall Status</div>
+//           </div>
+//         </div>
+//       </div>
+      
+//       {/* Prevention Tips */}
+//       <div className="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-500">
+//         <h4 className="font-bold text-blue-800 mb-3">💡 Tips to Maintain Low Risk</h4>
+//         <ul className="space-y-2 text-blue-700">
+//           <li className="flex items-start gap-2">
+//             <span className="text-blue-500">•</span>
+//             <span>Continue regular progress monitoring and weekly reviews</span>
+//           </li>
+//           <li className="flex items-start gap-2">
+//             <span className="text-blue-500">•</span>
+//             <span>Ensure all tasks have assigned resources</span>
+//           </li>
+//           <li className="flex items-start gap-2">
+//             <span className="text-blue-500">•</span>
+//             <span>Maintain buffer time for critical path tasks</span>
+//           </li>
+//           <li className="flex items-start gap-2">
+//             <span className="text-blue-500">•</span>
+//             <span>Document lessons learned for future projects</span>
+//           </li>
+//         </ul>
+//       </div>
+//     </div>
+//   );
+// }
+
+//     return (
+//       <div className="space-y-8">
+//         <div>
+//           <h3 className="text-xl font-bold text-gray-800 mb-2">⚠️ Risk Analysis</h3>
+//           <p className="text-gray-600">
+//             Identified {riskAnalysis.statistics.total} potential risks in the project
+//           </p>
+//         </div>
+
+//         {/* Risk Statistics */}
+//         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+//           <div className="bg-white rounded-xl shadow p-6">
+//             <div className="flex items-center justify-between">
+//               <div className="p-3 bg-red-100 rounded-lg">
+//                 <AlertCircle className="w-6 h-6 text-red-600" />
+//               </div>
+//               <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.high}</span>
+//             </div>
+//             <h3 className="text-lg font-semibold text-gray-700 mt-4">High Risks</h3>
+//             <p className="text-sm text-gray-500">Require immediate attention</p>
+//           </div>
+
+//           <div className="bg-white rounded-xl shadow p-6">
+//             <div className="flex items-center justify-between">
+//               <div className="p-3 bg-yellow-100 rounded-lg">
+//                 <AlertTriangle className="w-6 h-6 text-yellow-600" />
+//               </div>
+//               <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.medium}</span>
+//             </div>
+//             <h3 className="text-lg font-semibold text-gray-700 mt-4">Medium Risks</h3>
+//             <p className="text-sm text-gray-500">Monitor closely</p>
+//           </div>
+
+//           <div className="bg-white rounded-xl shadow p-6">
+//             <div className="flex items-center justify-between">
+//               <div className="p-3 bg-blue-100 rounded-lg">
+//                 <AlertTriangle className="w-6 h-6 text-blue-600" />
+//               </div>
+//               <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.low}</span>
+//             </div>
+//             <h3 className="text-lg font-semibold text-gray-700 mt-4">Low Risks</h3>
+//             <p className="text-sm text-gray-500">Regular monitoring</p>
+//           </div>
+
+//           <div className="bg-white rounded-xl shadow p-6">
+//             <div className="flex items-center justify-between">
+//               <div className="p-3 bg-gray-100 rounded-lg">
+//                 <Shield className="w-6 h-6 text-gray-600" />
+//               </div>
+//               <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.total}</span>
+//             </div>
+//             <h3 className="text-lg font-semibold text-gray-700 mt-4">Total Risks</h3>
+//             <p className="text-sm text-gray-500">All identified risks</p>
+//           </div>
+//         </div>
+
+//         {/* Risk Details */}
+//         <div className="bg-white rounded-xl shadow">
+//           <div className="p-6 border-b">
+//             <h4 className="text-lg font-bold text-gray-800">📋 Risk Details</h4>
+//           </div>
+//           <div className="overflow-x-auto">
+//             <table className="w-full">
+//               <thead className="bg-gray-50">
+//                 <tr>
+//                   <th className="p-4 text-left font-semibold text-gray-700">Risk Level</th>
+//                   <th className="p-4 text-left font-semibold text-gray-700">Type</th>
+//                   <th className="p-4 text-left font-semibold text-gray-700">Task/Resource</th>
+//                   <th className="p-4 text-left font-semibold text-gray-700">Description</th>
+//                 </tr>
+//               </thead>
+//               <tbody className="divide-y divide-gray-200">
+//                 {riskAnalysis.risks.map((risk, index) => (
+//                   <tr key={index} className="hover:bg-gray-50">
+//                     <td className="p-4">
+//                       <span className={`px-3 py-1 text-xs font-medium rounded-full ${risk.riskLevel === 'High' ? 'bg-red-100 text-red-800' :
+//                         risk.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+//                           'bg-blue-100 text-blue-800'
+//                         }`}>
+//                         {risk.riskLevel}
+//                       </span>
+//                     </td>
+//                     <td className="p-4 text-gray-700">{risk.riskType}</td>
+//                     <td className="p-4">
+//                       <div className="font-medium">
+//                         {risk.taskName || risk.resourceName}
+//                       </div>
+//                       <div className="text-sm text-gray-500">
+//                         {risk.taskId ? `Task ID: ${risk.taskId}` : `Resource: ${risk.resourceName}`}
+//                       </div>
+//                     </td>
+//                     <td className="p-4 text-gray-700">{risk.description}</td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+
+//         {/* Recommendations */}
+//         {riskAnalysis.recommendations && riskAnalysis.recommendations.length > 0 && (
+//           <div className="bg-white rounded-xl shadow p-6">
+//             <h4 className="text-lg font-bold text-gray-800 mb-4">💡 Recommendations</h4>
+//             <div className="space-y-4">
+//               {riskAnalysis.recommendations.map((rec, index) => (
+//                 <div key={index} className={`p-4 rounded-lg border-l-4 ${rec.priority === 'High' ? 'border-l-red-500 bg-red-50' :
+//                   rec.priority === 'Medium' ? 'border-l-yellow-500 bg-yellow-50' :
+//                     'border-l-blue-500 bg-blue-50'
+//                   }`}>
+//                   <div className="flex justify-between items-start">
+//                     <div>
+//                       <h5 className="font-semibold text-gray-800">{rec.type} Risk</h5>
+//                       <p className="text-gray-600 mt-1">{rec.description}</p>
+//                     </div>
+//                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${rec.priority === 'High' ? 'bg-red-100 text-red-800' :
+//                       rec.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+//                         'bg-blue-100 text-blue-800'
+//                       }`}>
+//                       {rec.priority} Priority
+//                     </span>
+//                   </div>
+//                   <div className="mt-3 text-sm">
+//                     <span className="font-medium">Action: </span>
+//                     <span className="text-gray-700">{rec.action}</span>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     );
+//   };
+// Render Risk Analysis - SIMPLIFIED VERSION
+const renderRiskAnalysis = () => {
+  if (!riskAnalysis) {
+    return (
+      <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl">
+        <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-gray-800 mb-3">No Risk Analysis Available</h3>
+        <p className="text-gray-600 mb-6">Risk analysis could not be generated from the uploaded file.</p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+          <span className="text-sm">Try re-uploading your project file</span>
         </div>
       </div>
-      
-      {/* Prevention Tips */}
-      <div className="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-500">
-        <h4 className="font-bold text-blue-800 mb-3">💡 Tips to Maintain Low Risk</h4>
-        <ul className="space-y-2 text-blue-700">
-          <li className="flex items-start gap-2">
-            <span className="text-blue-500">•</span>
-            <span>Continue regular progress monitoring and weekly reviews</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-500">•</span>
-            <span>Ensure all tasks have assigned resources</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-500">•</span>
-            <span>Maintain buffer time for critical path tasks</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-500">•</span>
-            <span>Document lessons learned for future projects</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
-}
+    );
+  }
 
+  // Get all high risk task names
+  const highRiskTaskNames = new Set();
+  
+  riskAnalysis.risks.forEach(risk => {
+    if (risk.riskLevel === 'High' && (risk.taskName || risk.resourceName)) {
+      highRiskTaskNames.add(risk.taskName || risk.resourceName);
+    }
+  });
+
+  console.log('High risk tasks:', Array.from(highRiskTaskNames));
+
+  // Filter medium risks - remove those that are already in high risk
+  const filteredRisks = riskAnalysis.risks.filter(risk => {
+    const taskName = risk.taskName || risk.resourceName;
+    
+    // If task is in high risk, don't show it in medium/low
+    if (highRiskTaskNames.has(taskName) && risk.riskLevel !== 'High') {
+      return false; // Skip this risk
+    }
+    
+    return true; // Keep this risk
+  });
+
+  // Count risks after filtering
+  const riskCounts = {
+    High: 0,
+    Medium: 0,
+    Low: 0,
+    total: 0
+  };
+
+  filteredRisks.forEach(risk => {
+    riskCounts[risk.riskLevel]++;
+    riskCounts.total++;
+  });
+
+  console.log('Filtered risks:', {
+    original: riskAnalysis.risks.length,
+    filtered: filteredRisks.length,
+    counts: riskCounts
+  });
+
+  if (filteredRisks.length === 0) {
     return (
       <div className="space-y-8">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">⚠️ Risk Analysis</h3>
-          <p className="text-gray-600">
-            Identified {riskAnalysis.statistics.total} potential risks in the project
+          <h3 className="text-xl font-bold text-gray-800 mb-2">✅ Risk Analysis</h3>
+          <p className="text-gray-600">No potential risks detected in the project</p>
+        </div>
+        {/* ... rest of no risks UI ... */}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">⚠️ Risk Analysis</h3>
+        <p className="text-gray-600">
+          {riskCounts.total} risks identified
+          <span className="text-sm text-gray-500 ml-2">
+            (High risk tasks removed from medium/low)
+          </span>
+        </p>
+      </div>
+
+      {/* Risk Statistics - SIMPLIFIED */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="p-3 bg-red-100 rounded-lg">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{riskCounts.High}</span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 mt-4">High Risks</h3>
+          <p className="text-sm text-gray-500">Critical - needs immediate action</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="p-3 bg-yellow-100 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{riskCounts.Medium}</span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 mt-4">Medium Risks</h3>
+          <p className="text-sm text-gray-500">Monitor closely</p>
+          <p className="text-xs text-gray-400 mt-1">
+            (High risk tasks excluded)
           </p>
         </div>
 
-        {/* Risk Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="p-3 bg-red-100 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-red-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.high}</span>
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-700 mt-4">High Risks</h3>
-            <p className="text-sm text-gray-500">Require immediate attention</p>
+            <span className="text-2xl font-bold text-gray-800">{riskCounts.Low}</span>
           </div>
-
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-yellow-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.medium}</span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-700 mt-4">Medium Risks</h3>
-            <p className="text-sm text-gray-500">Monitor closely</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.low}</span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-700 mt-4">Low Risks</h3>
-            <p className="text-sm text-gray-500">Regular monitoring</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="p-3 bg-gray-100 rounded-lg">
-                <Shield className="w-6 h-6 text-gray-600" />
-              </div>
-              <span className="text-2xl font-bold text-gray-800">{riskAnalysis.statistics.total}</span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-700 mt-4">Total Risks</h3>
-            <p className="text-sm text-gray-500">All identified risks</p>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-700 mt-4">Low Risks</h3>
+          <p className="text-sm text-gray-500">Regular monitoring</p>
+          <p className="text-xs text-gray-400 mt-1">
+            (High risk tasks excluded)
+          </p>
         </div>
-
-        {/* Risk Details */}
-        <div className="bg-white rounded-xl shadow">
-          <div className="p-6 border-b">
-            <h4 className="text-lg font-bold text-gray-800">📋 Risk Details</h4>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-4 text-left font-semibold text-gray-700">Risk Level</th>
-                  <th className="p-4 text-left font-semibold text-gray-700">Type</th>
-                  <th className="p-4 text-left font-semibold text-gray-700">Task/Resource</th>
-                  <th className="p-4 text-left font-semibold text-gray-700">Description</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {riskAnalysis.risks.map((risk, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="p-4">
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${risk.riskLevel === 'High' ? 'bg-red-100 text-red-800' :
-                        risk.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                        {risk.riskLevel}
-                      </span>
-                    </td>
-                    <td className="p-4 text-gray-700">{risk.riskType}</td>
-                    <td className="p-4">
-                      <div className="font-medium">
-                        {risk.taskName || risk.resourceName}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {risk.taskId ? `Task ID: ${risk.taskId}` : `Resource: ${risk.resourceName}`}
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-700">{risk.description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recommendations */}
-        {riskAnalysis.recommendations && riskAnalysis.recommendations.length > 0 && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h4 className="text-lg font-bold text-gray-800 mb-4">💡 Recommendations</h4>
-            <div className="space-y-4">
-              {riskAnalysis.recommendations.map((rec, index) => (
-                <div key={index} className={`p-4 rounded-lg border-l-4 ${rec.priority === 'High' ? 'border-l-red-500 bg-red-50' :
-                  rec.priority === 'Medium' ? 'border-l-yellow-500 bg-yellow-50' :
-                    'border-l-blue-500 bg-blue-50'
-                  }`}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h5 className="font-semibold text-gray-800">{rec.type} Risk</h5>
-                      <p className="text-gray-600 mt-1">{rec.description}</p>
-                    </div>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${rec.priority === 'High' ? 'bg-red-100 text-red-800' :
-                      rec.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                      {rec.priority} Priority
-                    </span>
-                  </div>
-                  <div className="mt-3 text-sm">
-                    <span className="font-medium">Action: </span>
-                    <span className="text-gray-700">{rec.action}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-    );
-  };
+
+      {/* Simple Warning
+      <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-red-600" />
+          <span className="font-bold text-red-800">Note:</span>
+          <span className="text-red-700">
+            Tasks with High risk are NOT shown in Medium/Low risk sections
+          </span>
+        </div>
+      </div> */}
+
+      {/* Risk Details - SHOW FILTERED RISKS */}
+      <div className="bg-white rounded-xl shadow">
+        <div className="p-6 border-b">
+          <h4 className="text-lg font-bold text-gray-800">📋 All Risks</h4>
+          <p className="text-sm text-gray-500 mt-1">
+            Showing {filteredRisks.length} risks (filtered to avoid duplicates)
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="p-4 text-left font-semibold text-gray-700">Risk Level</th>
+                <th className="p-4 text-left font-semibold text-gray-700">Task/Resource</th>
+                <th className="p-4 text-left font-semibold text-gray-700">Description</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredRisks.map((risk, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="p-4">
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      risk.riskLevel === 'High' ? 'bg-red-100 text-red-800' :
+                      risk.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {risk.riskLevel}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="font-medium">
+                      {risk.taskName || risk.resourceName || 'General Risk'}
+                    </div>
+                  </td>
+                  <td className="p-4 text-gray-700">{risk.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Simple Summary
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-bold text-gray-800">📊 Summary:</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          <p>• <strong className="text-red-600">High Risk:</strong> {riskCounts.High} tasks - Need immediate attention</p>
+          <p>• <strong className="text-yellow-600">Medium Risk:</strong> {riskCounts.Medium} tasks - Monitor closely</p>
+          <p>• <strong className="text-blue-600">Low Risk:</strong> {riskCounts.Low} tasks - Regular monitoring</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Note: If a task has both High and Medium risks, it's only shown as High risk
+          </p>
+        </div>
+      </div> */}
+    </div>
+  );
+};
 
   // Render Duration Count
   const renderDurationCount = () => {
@@ -3634,7 +4112,7 @@ if (riskAnalysis.risks.length === 0) {
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <FileText className="w-5 h-5 text-blue-600" />
                 </div>
-                <span className="text-xl font-bold text-gray-800">{projectStats.totalTasks}</span>
+                <span className="text-xl font-bold text-gray-800">{projectStats.totalTasks-1}</span>
               </div>
               <h3 className="text-sm font-semibold text-gray-700 mt-2">Total Tasks</h3>
               <p className="text-xs text-gray-500 mt-1">
@@ -3767,13 +4245,15 @@ if (riskAnalysis.risks.length === 0) {
                 projectStats={projectStats}
               />
             )}
-            {activeTab === 'analysis' && (
-              <ProjectAnalysis
-                stats={projectStats}
-                tasks={content.tasks}
-                assignments={content.assignments}  // Add this line
-              />
-            )}
+           {activeTab === 'analysis' && (
+  <ProjectAnalysis
+    stats={projectStats}
+    tasks={content.tasks}
+    assignments={content.assignments}
+    overallProgressFromAssignments={calculateOverallProgressFromAssignments}
+    inProgressFromAssignments={inProgressTasksFromAssignments}
+  />
+)}
             {activeTab === 'risks' && renderRiskAnalysis()}
             {activeTab === 'duration' && renderDurationCount()}
           </div>
