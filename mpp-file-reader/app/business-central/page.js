@@ -855,8 +855,8 @@ const PurchaseOrderList = ({ data, loading, searchTerm, setSearchTerm, filterSta
                   const hasVendor = po.VendorName && po.VendorName !== 'Unknown Vendor';
 
                   return (
-                    <tr 
-                      key={index} 
+                    <tr
+                      key={index}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={(e) => handleRowClick(po, e)}
                     >
@@ -900,12 +900,12 @@ const PurchaseOrderList = ({ data, loading, searchTerm, setSearchTerm, filterSta
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
+                          {/* <button
                             title="Edit"
                             className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 action-button"
                           >
                             <FileText className="w-4 h-4" />
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -1412,8 +1412,8 @@ const WorkOrderList = ({ data, loading, searchTerm, setSearchTerm, filterStatus,
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredData.map((wo, index) => (
-              <tr 
-                key={index} 
+              <tr
+                key={index}
                 className="hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={(e) => handleRowClick(wo, e)}
               >
@@ -1471,12 +1471,12 @@ const WorkOrderList = ({ data, loading, searchTerm, setSearchTerm, filterStatus,
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button
+                    {/* <button
                       title="Edit"
                       className="p-2 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 action-button"
                     >
                       <FileText className="w-4 h-4" />
-                    </button>
+                    </button> */}
                   </div>
                 </td>
               </tr>
@@ -2085,7 +2085,7 @@ export default function BusinessCentral() {
       console.log('✅ Modal loading complete');
     }
   };
-  
+
   const openWODetailsModal = async (woData) => {
     console.log('🔍 Opening WO Details Modal for:', woData);
     console.log('🔢 WO Number:', woData?.No);
@@ -2395,7 +2395,7 @@ export default function BusinessCentral() {
                             </div>
                           </td>
                           <td className="p-4 font-bold text-gray-900">
-                            {line.unitCost ? formatCurrency(line.unitCost) : 'N/A'}
+                            {line.unitCost ? formatCurrency(line.unitCost) : formatCurrency(0)}
                           </td>
                           <td className="p-4 font-bold text-gray-900">
                             {formatCurrency(line.lineAmount || line.amount || 0)}
